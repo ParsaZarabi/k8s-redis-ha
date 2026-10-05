@@ -14,13 +14,13 @@ The deployment architecture utilizes a Headless Service for internal DNS resolut
 graph TD
     subgraph "Kubernetes Namespace"
         direction TB
-        SVC[Headless Service <br/> redis.svc.cluster.local]
+        SVC["Headless Service <br/> redis.svc.cluster.local"]
 
         subgraph "StatefulSet (redis)"
             direction LR
-            P0[redis-0 <br/> (Primary)] 
-            P1[redis-1 <br/> (Replica)] 
-            P2[redis-2 <br/> (Replica)]
+            P0["redis-0 <br/> (Primary)"] 
+            P1["redis-1 <br/> (Replica)"] 
+            P2["redis-2 <br/> (Replica)"]
         end
 
         SVC ==> P0
@@ -42,9 +42,9 @@ graph TD
     end
 
     subgraph "Longhorn Storage (Default StorageClass)"
-        V0[(PVC 1Gi <br/> redis-data-0)]
-        V1[(PVC 1Gi <br/> redis-data-1)]
-        V2[(PVC 1Gi <br/> redis-data-2)]
+        V0[("PVC 1Gi <br/> redis-data-0")]
+        V1[("PVC 1Gi <br/> redis-data-1")]
+        V2[("PVC 1Gi <br/> redis-data-2")]
     end
 
     P0 --- V0
@@ -128,4 +128,3 @@ OK
 127.0.0.1:6379> get mykey
 "Kubernetes HA Redis works!"
 ```
-
