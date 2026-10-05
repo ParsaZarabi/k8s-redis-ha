@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+  namespace: parsa
+spec:
+  serviceName: "redis"
+  replicas: 3
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      initContainers:
+      - name: config-init
+        image: busybox
+        command: ['sh', '/config/init-redis.sh']
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        - name: data
+          mountPath: /etc/redis
+      containers:
+      - name: redis
+        image: redis:alpine
+        command: ["redis-server", "/etc/redis/redis.conf"]
+        ports:
+        - containerPort: 6379
+          name: redis
+        volumeMounts:
+        - name: data
+          mountPath: /etc/redis
+        - name: redis-data
+          mountPath: /data
+      - name: sentinel
+        image: redis:alpine
+        command: ["redis-sentinel", "/etc/redis/sentinel.conf"]
+        ports:
+        - containerPort: 26379
+          name: sentinel
+        volumeMounts:
+        - name: data
+          mountPath: /etc/redis
+      volumes:
+      - name: config
+        configMap:
+          name: redis-config
+      - name: data
+        emptyDir: {}
+  volumeClaimTemplates:
+  - metadata:
+      name: redis-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "longhorn"
+      resources:
+        requests:
+          storage: 1Gi
+
