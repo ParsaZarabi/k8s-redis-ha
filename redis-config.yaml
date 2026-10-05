@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+  namespace: parsa
+data:
+  init-redis.sh: |
+    #!/bin/sh
+    if [ "$HOSTNAME" = "redis-0" ]; then
+      echo "I am the Primary (Master)!"
+      touch /etc/redis/redis.conf
+    else
+      echo "I am a Replica! Connecting to redis-0..."
+      echo "replicaof redis-0.redis.parsa.svc.cluster.local 6379" > /etc/redis/redis.conf
+    fi
+    
+    # Sentinel Config
+    echo "port 26379" > /etc/redis/sentinel.conf
+    echo "sentinel resolve-hostnames yes" >> /etc/redis/sentinel.conf
+    echo "sentinel monitor mymaster redis-0.redis.parsa.svc.cluster.local 6379 2" >> /etc/redis/sentinel.conf
+    echo "sentinel down-after-milliseconds mymaster 5000" >> /etc/redis/sentinel.conf
+    echo "sentinel failover-timeout mymaster 60000" >> /etc/redis/sentinel.conf
+    
+    chmod 777 /etc/redis/redis.conf
+    chmod 777 /etc/redis/sentinel.conf
+
